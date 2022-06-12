@@ -11,20 +11,11 @@ class GraphSpace:
     def __init__(self):
         self.__graph_dict = dict()
         self.__saved_graph_dict = dict()
-        self.__pieces_clipboard=dict()
         self.current_graph = None
 
     def AddGraph(self, name: str = '', orientation: bool = False) -> None:
         s = Graph(name=name, orientation=orientation)
         self.__graph_dict[s.id] = s
-
-    def CopyGraphPiece(self, id, edges: list, nodes: dict):
-        g=Graph(edges=edges, nodes=nodes)
-        if id not in self.__pieces_clipboard.keys(): self.__pieces_clipboard[id]=list()
-        self.__pieces_clipboard[id].append(g)
-
-    def LoadGraphPiece(self, id, save_id):
-        self.__graph_dict[id]=self.__pieces_clipboard[id][save_id]
 
     def SetCurrentGraph(self, graph_id):
         if graph_id in range(len(self.__graph_dict.keys())):
@@ -113,11 +104,11 @@ class GraphSpace:
         return len(self.__saved_graph[graph_id])
 
     def FindTens(self, id1, id2):
-        a=self.__graph_dict[id1]
-        b=self.__graph_dict[id2]
-        a1=a.ConvertToNetworkxGraph()
-        b1=b.ConvertToNetworkxGraph()
-        c1=nx.tensor_product(a1, b1)
+        a = self.__graph_dict[id1]
+        b = self.__graph_dict[id2]
+        a1 = a.ConvertToNetworkxGraph()
+        b1 = b.ConvertToNetworkxGraph()
+        c1 = nx.tensor_product(a1, b1)
         return c1.edges
 
     def FindCart(self, id1, id2):

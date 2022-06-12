@@ -1,3 +1,5 @@
+import copy
+
 from entities.edge import Edge
 from entities.node import Node
 from exceptions.exceptions import TryingToAddExistingNodeException, TryingToDeleteUnexistingEdgeException, \
@@ -8,11 +10,16 @@ import networkx as nx
 from networkx.algorithms import tournament
 from colorama import Fore
 
+
 class Graph:
     __name = 0
     __id = 0
     colors_dict = {'red': Fore.RED, 'blue': Fore.BLUE, 'white': Fore.WHITE, 'yellow': Fore.YELLOW,
-                     'green': Fore.GREEN, 'cyan': Fore.CYAN, 'magenta' : Fore.MAGENTA}
+                   'green': Fore.GREEN, 'cyan': Fore.CYAN, 'magenta': Fore.MAGENTA}
+
+    colors_dict_inverted = {Fore.RED: 'red', Fore.BLUE: 'blue', Fore.WHITE: 'white', Fore.YELLOW: 'yellow',
+                            Fore.GREEN: 'green', Fore.CYAN: 'cyan', Fore.MAGENTA: 'magenta'}
+
     def __init__(self, name='', orientation=False):
         if name == '':
             self.__name = f'{Graph.__name}'
@@ -24,15 +31,6 @@ class Graph:
         self.__orientation = orientation
         self.__nodes_dict = dict()
         self.__edges_list = []
-        self.__clip=False
-
-    def __init__(self, nodes: dict, edges:list):
-        self.__id = Graph.__id
-        Graph.__id += 1
-        self.__orientation = edges[0].orientation
-        self.__nodes_dict = nodes
-        self.__edges_list = edges
-        self.__clip=True
 
     @property
     def name(self) -> str:
@@ -55,14 +53,8 @@ class Graph:
         return self.__id
 
     def AddNode(self, name: str = '', color: str = 'white', shape: str = 'circle') -> str:
-        # if node is not None:
-        #     if node not in self.__nodes_dict.values():
-        #         self.__nodes_dict[node.id] = node
-        #     else:
-        #         raise TryingToAddExistingNodeException()
-        # else:
-        if color=='': color = 'white'
-        if shape=='': shape='circle'
+        if color == '': color = 'white'
+        if shape == '': shape = 'circle'
         add_node = Node(name=name, color=color, shape=shape)
         self.__nodes_dict[add_node.id] = add_node
         return f'Node has been added: id - {add_node.id}, name - {add_node.name}, color - {add_node.color}, shape - {add_node.shape}\n'
@@ -80,13 +72,19 @@ class Graph:
     def __GetNodesListString(self) -> str:
         return_value = ''
         for i in self.__nodes_dict.values():
-            return_value += Graph.colors_dict[i.color] + f'Node: name : {i.name}, id : {i.id}, color: {i.color}, shape: {i.shape}\n'
+            return_value += Graph.colors_dict[
+                                i.color] + f'Node: name : {i.name}, id : {i.id}, color: {i.color}, shape: {i.shape}\n'
         return return_value
 
     def __GetEdgesListString(self) -> str:
         return_value = ''
         for i in self.__edges_list:
-            return_value += Graph.colors_dict[i.color] + '(' + Graph.colors_dict[i.connected_nodes[0].color] + f'(Node: name : {i.connected_nodes[0].name}, id : {i.connected_nodes[0].id}, color: {i.connected_nodes[0].color}, shape: {i.connected_nodes[0].shape})' + Graph.colors_dict[i.color] + f' {i.orientation_string}' + Graph.colors_dict[i.connected_nodes[1].color] + f'(Node: name : {i.connected_nodes[1].name}, id : {i.connected_nodes[1].id}, color: {i.connected_nodes[1].color}, shape: {i.connected_nodes[1].shape})' + Graph.colors_dict[i.color] + f') : id - {i.id}, color - {i.color}\n '
+            return_value += Graph.colors_dict[i.color] + '(' + Graph.colors_dict[i.connected_nodes[
+                0].color] + f'(Node: name : {i.connected_nodes[0].name}, id : {i.connected_nodes[0].id}, color: {i.connected_nodes[0].color}, shape: {i.connected_nodes[0].shape})' + \
+                            Graph.colors_dict[i.color] + f' {i.orientation_string}' + Graph.colors_dict[
+                                i.connected_nodes[
+                                    1].color] + f'(Node: name : {i.connected_nodes[1].name}, id : {i.connected_nodes[1].id}, color: {i.connected_nodes[1].color}, shape: {i.connected_nodes[1].shape})' + \
+                            Graph.colors_dict[i.color] + f') : id - {i.id}, color - {i.color}\n '
         return return_value
 
     def DeleteNode(self, id: int):
@@ -126,16 +124,23 @@ class Graph:
         else:
             raise TryingToSetNameForUnexistingNode()
 
-    def GetMatrix(self):
-        a = [[0 for i in range(len(self.__nodes_dict))] for i in range(len(self.__nodes_dict))]
-        for i in range(len(a)):
-            loclst = self.__nodes_dict[i].get_available_nodes_list()
-            for j in range(len(a[i])):
-                if i is j:
-                    a[i][j] = 1
+    def CheckIfNodesConnected(self, id1, id2):
+        a = False
+        if id1 == id2:
+            a = True
+        for i in self.__edges_list:
+            if self.__orientation:
+                if i == (id1, id2):
+                    a = True
+                    break
             else:
-                if j in loclst:
-                    a[i][j] = 1
+                if i == (id1, id2) or i == (id2, id1):
+                    a = True
+                    break
+        return a
+
+    def GetMatrix(self):
+        a = {i: self.__nodes_dict[i].get_available_nodes_list() for i in self.__nodes_dict.keys()}
         return a
 
     def GetGraphInfoString(self) -> str:
@@ -188,8 +193,8 @@ class Graph:
     def GetHamiltonianPath(self):
         g = self.ConvertToNetworkxGraph()
         p = tournament.hamiltonian_path(g)
-        if p ==[]:
-            p='No hamiltonian path exist'
+        if not p:
+            p = 'No hamiltonian path exist'
         return p
 
     def GetDiamRadCent(self):
@@ -198,12 +203,17 @@ class Graph:
         d = nx.diameter(g)
         c = list(nx.center(g))
         return d, r, c
-#TODO: допилить раскраску графов
-    def ColorGraph(self):
-        a=self.GetMatrix()
-        not_colored=list(self.__nodes_dict.keys())
-        not_used_colors=list(Graph.colors_dict.values())
-        for i in range(len(a)):
-            if i in not_colored:
-                self.__nodes_dict[i]
 
+    def ColorGraph(self):
+        a = self.GetMatrix()
+        colored = []
+        colors = list(Graph.colors_dict.keys())
+        for i in a.keys():
+            local_colors = copy.copy(colors)
+            for k in a[i]:
+                z = self.__nodes_dict[k].color
+                if z in local_colors:
+                    local_colors.remove(z)
+            if i not in colored:
+                self.__nodes_dict[i].color = local_colors.pop()
+                colored.append(i)

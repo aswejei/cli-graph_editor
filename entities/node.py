@@ -1,9 +1,10 @@
 from exceptions.exceptions import TryingToAddExistingColor
-
+from colorama import Fore
 
 class Node:
     __id = 0
-    __availiable_colors_dict = dict()
+    __colors_dict = {'red': Fore.RED, 'blue': Fore.BLUE, 'white': Fore.WHITE, 'yellow': Fore.YELLOW,
+                     'green': Fore.GREEN, 'cyan': Fore.CYAN, 'magenta' : Fore.MAGENTA}
 
     def __init__(self, name='', color='white', shape='circle'):
         self.__id = Node.__id
@@ -58,18 +59,11 @@ class Node:
                 lst.append(i.connected_nodes[1].id)
         else:
             for i in self.__edge_dict.values():
-                if i.connected_nodes[0] == self:
+                if i.connected_nodes[0].id == self.__id:
                     lst.append(i.connected_nodes[1].id)
                 else:
                     lst.append(i.connected_nodes[0].id)
         return lst
-
-    @staticmethod
-    def add_new_color(self, color, code):
-        if color not in Node.__availiable_colors_dict.keys():
-            Node.__availiable_colors_dict[color] = code
-        else:
-            raise TryingToAddExistingColor()
 
     def __str__(self):
         return f'Node: id - {self.__id}, name - {self.__name}, color - {self.__color}, shape - {self.__shape}'

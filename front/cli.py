@@ -153,7 +153,7 @@ class CLI:
                       '9 - Make graph connected\n'
                       '10 - Find hamiltoninan paths\n'
                       '11 - Calculate center, radius and diamether for the graph\n'
-                      '12 - Copy graph piece'
+                      '12 - Color graph'
                       '13 - Go to main menu\n')
                 k = {f'{i}' for i in range(1, 14)}
                 a = input()
@@ -248,3 +248,6 @@ class CLI:
                         a = CLI.__gs.current_graph.GetDiamRadCent()
                         print(f'Diamether is {a[0]}, radius is {a[1]}, center is {a[2]}')
                     case 12:
+                        CLI.__gs.current_graph.ColorGraph()
+                        print('Graph was successfully colored! See current graph state below:\n')
+                        print(CLI.__gs.current_graph.GetGraphInfoString())
